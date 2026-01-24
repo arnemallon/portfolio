@@ -18,11 +18,21 @@
             </p>
             
             <nav class="links">
-                <a href="mailto:arne.mallon@icloud.com">Email</a>
+                <a href="#" id="email-toggle" onclick="toggleEmail(event)">Email</a>
                 <a href="https://www.linkedin.com/in/arne-mallon-815b6135a/" target="_blank" rel="noopener">LinkedIn</a>
             </nav>
+            <div id="email-display" class="email-display hidden">
+                arne dot mallon at icloud dot com
+            </div>
         </section>
     </main>
+    <script>
+        function toggleEmail(event) {
+            event.preventDefault();
+            const emailDisplay = document.getElementById('email-display');
+            emailDisplay.classList.toggle('hidden');
+        }
+    </script>
 </body>
 </html>
 

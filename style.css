@@ -67,6 +67,20 @@ header h1 {
     border-bottom-color: #ffffff;
 }
 
+.email-display {
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    font-weight: 300;
+    min-height: 1.5rem;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.email-display.hidden {
+    visibility: hidden;
+    opacity: 0;
+}
+
 @media (max-width: 600px) {
     header h1 {
         font-size: 2rem;
