@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,32 +7,48 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main>
-        <header>
+    <main class="bento">
+        <section class="tile intro">
             <h1>Arne Mallon</h1>
-        </header>
-        
-        <section class="content">
-            <p class="description">
-                I am a computer science student at the University of Hamburg and am currently spending one semester abroad at UC Berkeley. My research interests include graph-based machine learning and sparse computer vision. I love philosophy, art museums, and cooking.
-            </p>
-            
-            <nav class="links">
-                <a href="#" id="email-toggle" onclick="toggleEmail(event)">Email</a>
-                <a href="https://www.linkedin.com/in/arne-mallon-815b6135a/" target="_blank" rel="noopener">LinkedIn</a>
-            </nav>
-            <div id="email-display" class="email-display hidden">
-                arne dot mallon at icloud dot com
+            <p>I am a computer science student at the University of Hamburg and am currently spending one semester abroad at UC Berkeley. My research interests include graph-based machine learning and sparse computer vision. I love philosophy, art museums, and cooking.</p>
+        </section>
+
+        <section class="tile group">
+            <h2>Projects</h2>
+            <div class="group-links">
+                <a href="https://aeo.arnemallon.com" target="_blank" rel="noopener">AEO</a>
+                <a href="https://patterns.arnemallon.com" target="_blank" rel="noopener">Patterns</a>
+                <a href="https://github.com/arnemallon/" target="_blank" rel="noopener">GitHub</a>
             </div>
         </section>
+
+        <section class="tile group">
+            <h2>Contact</h2>
+            <div class="group-links">
+                <a href="#" id="email-toggle" onclick="toggleEmail(event)">Email</a>
+                <a href="https://www.linkedin.com/in/arne-mallon-815b6135a/" target="_blank" rel="noopener">LinkedIn</a>
+            </div>
+        </section>
+
+        <a href="Resume.pdf" target="_blank" rel="noopener" class="tile cv-tile">
+            <span class="cv-label">CV</span>
+            <div class="cv-preview">
+                <object data="Resume.pdf" type="application/pdf" tabindex="-1"></object>
+                <div class="cv-overlay"></div>
+            </div>
+        </a>
     </main>
+
+    <div id="email-display" class="email-display hidden">
+        arne dot mallon at icloud dot com
+    </div>
+
     <script>
         function toggleEmail(event) {
             event.preventDefault();
-            const emailDisplay = document.getElementById('email-display');
-            emailDisplay.classList.toggle('hidden');
+            const display = document.getElementById('email-display');
+            display.classList.toggle('hidden');
         }
     </script>
 </body>
 </html>
-
