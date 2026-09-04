@@ -58,7 +58,7 @@ body {
     width: 100%;
     /* the body's own 0.75rem gap, plus room for the field's halo to fall off
        before the description tile starts */
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.25rem;
 }
 
 .headline {
@@ -262,11 +262,18 @@ svg.lg-defs {
     pointer-events: none;
 }
 
-.cv-preview object {
-    width: 100%;
-    height: 300%;
-    pointer-events: none;
+/* a rasterised first page, not an inline <object>: a PDF plugin paints its own
+   grey viewer ground and iOS Safari refuses to render one inline at all, and the
+   old 300% height was measured against a container that goes content-sized when
+   the tile drops its aspect-ratio on mobile. `cover` fills the section at every
+   shape; `top` keeps the crop on the head of the page. */
+.cv-preview img {
     display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    pointer-events: none;
     border: none;
 }
 
@@ -303,5 +310,12 @@ svg.lg-defs {
     .group,
     .cv-tile {
         aspect-ratio: auto;
+    }
+
+    /* the tile is content-sized here, so `flex: 1` has nothing to fill against:
+       the preview needs a height of its own or it collapses to nothing */
+    .cv-preview {
+        flex: none;
+        aspect-ratio: 3 / 2;
     }
 }
