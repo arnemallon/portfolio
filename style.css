@@ -53,6 +53,64 @@ body {
     line-height: 1.7;
 }
 
+/* Affiliation tags */
+
+.tag {
+    --tag-radius: 7px;
+    --tag-pad: 0.15em;
+    --tag-border: 1px;
+    display: inline-block;
+    padding: var(--tag-pad) 0.45em var(--tag-pad) var(--tag-pad);
+    margin: 0 0.05em;
+    line-height: 1.15;
+    border: var(--tag-border) solid #2c2c2c;
+    border-radius: var(--tag-radius);
+    background: #1e1e1e;
+    color: #e8e8e8;
+    font-weight: 400;
+    text-decoration: none;
+    white-space: nowrap;
+    transform: rotate(0deg);
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.tag-icon {
+    width: 1.15em;
+    height: 1.15em;
+    margin-right: 0.4em;
+    border-radius: calc(var(--tag-radius) - var(--tag-pad) - var(--tag-border));
+    object-fit: cover;
+    display: inline-block;
+    vertical-align: -0.22em;
+}
+
+.tag:hover {
+    background: #262626;
+    border-color: #3d3d3d;
+}
+
+.tag-uhh:hover {
+    transform: rotate(-2.5deg);
+}
+
+.tag-meister:hover {
+    transform: rotate(3deg);
+}
+
+.tag-berkeley:hover {
+    transform: rotate(-1.5deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tag {
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .tag:hover {
+        transform: none;
+    }
+}
+
 .group {
     aspect-ratio: 1;
 }
