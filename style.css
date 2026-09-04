@@ -39,11 +39,89 @@ body {
     grid-column: 1 / -1;
 }
 
-.intro h1 {
-    font-size: 1.5rem;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    margin-bottom: 0.75rem;
+/* ---------------------------------------------------------------------------
+   Liquid Glass heading — vendored from PrepTools (OptiverPrep src/lib/glass).
+   Sources live in glass/; `node glass/build.mjs` regenerates the defs inlined
+   in index.html and the field above. The dark material's baked ground is
+   retuned to this page's #0a0a0a (glass/filters.js GROUNDS.dark).
+
+   Structure the filter depends on: the heading shrink-wraps its ink and holds
+   exactly ONE element child (the span), which is what carries the filter.
+
+   Upstream also paints the ambient field on the page (a ::before behind the
+   heading); that read as fog here and is dropped. The glass keeps its own copy
+   of the field inside the filter, so the glyphs still refract it.
+   --------------------------------------------------------------------------- */
+
+.page-head {
+    max-width: 580px;
+    width: 100%;
+    /* the body's own 0.75rem gap, plus room for the field's halo to fall off
+       before the description tile starts */
+    margin-bottom: 1.75rem;
+}
+
+.headline {
+    font-size: clamp(2.6rem, 11vw, 4.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+}
+
+[data-lg='title'] {
+    --lg-f: url(#lg-title-dark-l);
+    width: fit-content;
+    max-width: 100%;
+}
+
+/* the small stem bucket takes over where the clamp drops under 52px (11vw) */
+@media (max-width: 472px) {
+    [data-lg='title'] {
+        --lg-f: url(#lg-title-dark-s);
+    }
+}
+
+/* the filtered child must have no ink overflow: `clip` pins the filter's
+   reference box to the border box (0.9 leading otherwise spills ~0.3em) */
+[data-lg] > * {
+    overflow: clip;
+}
+
+[data-lg='title'] > span {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+}
+
+/* the glass. The filter reads only SourceAlpha, so the ink colour is pinned. */
+[data-lg] > * {
+    filter: var(--lg-f);
+    color: #000;
+}
+
+/* a selection paints its highlight inside the filtered element, where the glass
+   would slab it: the heading reads as ink while it is selected */
+html [data-lg][data-lg-sel] > * {
+    filter: none;
+    color: inherit;
+}
+
+/* plain ink, no field: the reader asked for opacity or contrast, or the OS
+   paints forced colours */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+    [data-lg] > * {
+        filter: none !important;
+        color: inherit !important;
+    }
+}
+
+/* the defs host: out of layout, out of the tab order */
+svg.lg-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 .intro p {

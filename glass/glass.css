@@ -1,0 +1,197 @@
+/* ---------------------------------------------------------------------------
+   Liquid Glass headings — a static module. GlassDefs.svelte mounts the filters
+   (filters.js) once; glass.js stamps `data-lg` / `data-lg-size` on the two
+   heading kinds and nothing else. Everything visual is decided here:
+
+   · the heading shrink-wraps its ink (`width: fit-content`) so the filter's
+     objectBoundingBox region and the field pseudo-element mean the same box;
+   · the glass is `filter: url(#lg-…)` on the heading's ONE child (MaskText's
+     span, the Odometer host) — the live DOM, untouched — so the field painted
+     by the heading's ::before stays outside the filter's SourceAlpha;
+   · the field pseudo and the filter region share the same insets (-50% -30%)
+     and both stretch the picture to that box, so the two copies register;
+   · theme, band and pass state select the material through custom properties;
+   · the filter stays on through the word-rise and the digit roll (no swap),
+     and drops only for a text selection and the accessibility media queries.
+   --------------------------------------------------------------------------- */
+
+/* the buckets, per theme. Ids are filters.js's; the fields are the root custom
+   properties glass.js sets from the same source the filters use. */
+:root {
+  --lg-title-l: url(#lg-title-light-l);
+  --lg-title-s: url(#lg-title-light-s);
+  --lg-score: url(#lg-score-band-light);
+  --lg-pass: url(#lg-score-pass-light);
+  --lg-fld-title: var(--lg-fld-title-light);
+  --lg-dbg-title: url(#lg-debug-title-light);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --lg-title-l: url(#lg-title-dark-l);
+    --lg-title-s: url(#lg-title-dark-s);
+    --lg-score: url(#lg-score-band-dark);
+    --lg-pass: url(#lg-score-pass-dark);
+    --lg-fld-title: var(--lg-fld-title-dark);
+    --lg-dbg-title: url(#lg-debug-title-dark);
+  }
+}
+:root[data-theme='dark'] {
+  --lg-title-l: url(#lg-title-dark-l);
+  --lg-title-s: url(#lg-title-dark-s);
+  --lg-score: url(#lg-score-band-dark);
+  --lg-pass: url(#lg-score-pass-dark);
+  --lg-fld-title: var(--lg-fld-title-dark);
+  --lg-dbg-title: url(#lg-debug-title-dark);
+}
+
+/* which material a heading wears */
+[data-lg='title'] {
+  --lg-f: var(--lg-title-l);
+  --lg-fld: var(--lg-fld-title);
+  --lg-dbg: var(--lg-dbg-title);
+  --lg-reg: var(--lg-fld-grid-title);
+  --lg-dbg-reg: url(#lg-debug-reg-title);
+}
+[data-lg='title'][data-lg-size='s'] {
+  --lg-f: var(--lg-title-s);
+}
+[data-lg='score'] {
+  --lg-f: var(--lg-score);
+  --lg-fld: var(--lg-fld-score-band);
+  --lg-dbg: url(#lg-debug-score-band);
+  --lg-reg: var(--lg-fld-grid-score);
+  --lg-dbg-reg: url(#lg-debug-reg-score);
+}
+[data-lg='score'].passed {
+  --lg-f: var(--lg-pass);
+  --lg-fld: var(--lg-fld-score-pass);
+  --lg-dbg: url(#lg-debug-score-pass);
+}
+
+/* the heading: hugs its ink; its own stacking context so the field can sit
+   under the text at z -1 without falling behind the band's background */
+[data-lg] {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+  max-width: 100%;
+}
+/* the filtered child must have NO ink overflow: Blink and Gecko both size an
+   objectBoundingBox filter to the element's ink-overflow rect, not its border
+   box (a line of 0.9-leading type overflows its box by the font's ascent and
+   descent, ~0.3 em). `overflow: clip` pins the reference box to the border box —
+   the masks and drums already keep every visible glyph inside it. */
+[data-lg] > * {
+  overflow: clip;
+}
+/* the title's one child is MaskText's span: a shrink-wrapped block, so its box
+   (the filter's bounding box) is the heading's box */
+[data-lg='title'] > span {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+/* the word masks: a word rises through its mask's bottom edge, and a hard clip
+   there would light as a rim across the half-risen glyph. The mask grows 0.12 em
+   downward (padding, margined back out so the line box does not move) and that
+   strip is a soft fade, so the rising word fades in through the slot like the
+   Odometer's drums; at rest every glyph sits above the fade (the deepest
+   overshoot below the baseline is ~0.01 em; the fade starts 0.03 em below it). */
+[data-lg='title'] > span > .mask {
+  padding-bottom: 0.18em;
+  margin-bottom: -0.12em;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 0.15em), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 0.15em), transparent);
+}
+/* the score's one child is the Odometer host. Its drums clip their own cells,
+   and the tight display tracking (-0.05em) lets the last digit's right side
+   bearing fall outside its cell, where the rim would light a straight cut:
+   each cell keeps that sliver (padding it back, margin it out) and the host
+   leaves room for the last one. Positions do not move. */
+[data-lg='score'] > .odo {
+  padding-right: 0.06em;
+}
+[data-lg='score'] .drum {
+  padding-right: 0.06em;
+  margin-right: -0.06em;
+}
+
+/* the field on the page — the same picture the glass refracts, at the page
+   strength, stretched over the region exactly as the filter stretches its copy.
+   The insets are filters.js's REGION, written to --lg-inset by glass.js: one source. */
+[data-lg]::before {
+  content: '';
+  position: absolute;
+  inset: var(--lg-inset, -50% -30%);
+  z-index: -1;
+  pointer-events: none;
+  background: var(--lg-fld) 0 0 / 100% 100% no-repeat;
+}
+
+/* the glass. Gated on the fonts like every staged reveal, so it never re-rasters
+   for a face swap; the region and the raster live with the child, the field with
+   the heading. It stays on through the word-rise and the digit roll. The filter
+   reads only SourceAlpha, so the child's ink colour is pinned: the hero's 300 ms
+   colour flip on a pass no longer re-rasters the graph for 18 frames. */
+html.fonts-ready [data-lg] > * {
+  filter: var(--lg-f);
+  color: #000;
+}
+
+/* a text selection paints its highlight inside the filtered element, where the
+   glass would slab it: the selected heading reads as ink while it is selected.
+   `html` keeps this at the specificity of the fonts-ready rule above, and later. */
+html [data-lg][data-lg-sel] > * {
+  filter: none;
+  color: inherit;
+}
+
+/* plain ink, no field: the reader asked for opacity or contrast, or the OS
+   paints forced colours */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  [data-lg] > * {
+    filter: none !important;
+    color: inherit !important;
+  }
+  [data-lg]::before {
+    display: none;
+  }
+}
+
+/* the defs host: out of layout, out of the tab order */
+svg.lg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* debug (?lg=…): box — outline the field/region; field — the raw page-strength
+   field through the filter over the page copy; reg — a grid in both copies (they
+   must coincide; regi / regf show the page / the filter copy alone); ink — page
+   copy only; off — nothing. Dev only: glass.js stamps html[data-lg-debug] only in dev. */
+html[data-lg-debug] [data-lg]::before {
+  outline: 1px dashed rgba(255, 0, 255, 0.7);
+}
+html[data-lg-debug='field'] [data-lg] > * {
+  filter: var(--lg-dbg);
+}
+html[data-lg-debug='reg'] [data-lg]::before,
+html[data-lg-debug='regi'] [data-lg]::before {
+  background-image: var(--lg-reg);
+}
+html[data-lg-debug='reg'] [data-lg] > *,
+html[data-lg-debug='regf'] [data-lg] > * {
+  filter: var(--lg-dbg-reg);
+}
+html[data-lg-debug='regi'] [data-lg] > *,
+html[data-lg-debug='ink'] [data-lg] > *,
+html[data-lg-debug='off'] [data-lg] > * {
+  filter: none;
+  color: inherit;
+}
+html[data-lg-debug='regf'] [data-lg]::before,
+html[data-lg-debug='off'] [data-lg]::before {
+  display: none;
+}
