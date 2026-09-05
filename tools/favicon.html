@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Renders the site icon from the same glass as the page logo (logo3d.js).
+     Open it from the dev server: the script leaves a PNG data URL in
+     window.__favicon, which the maintainer decodes into static/ (see the
+     command in static/README.md). Not linked from the site. -->
+<meta charset="utf-8">
+<title>favicon render</title>
+<style>body{margin:0;background:#0a0a0a}canvas{display:block}</style>
+<canvas id="c" width="1024" height="1024"></canvas>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { makeRenderer, makeScene, loadLogo, K } from '../logo3d.js';
+
+const SIZE = 1024;   // rendered large, then downsampled: cleaner rims at small sizes
+const OUT = 256;
+const canvas = document.getElementById('c');
+const renderer = makeRenderer(canvas, { preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(SIZE, SIZE, false);
+const scene = makeScene(renderer);
+const { logo, size, R } = await loadLogo('../static/logo.svg');
+scene.add(logo);
+// front view, the mark spanning ~90 % of the square
+const dist = K * R;
+const span = Math.max(size.x, size.y) * 1.1;
+const camera = new THREE.PerspectiveCamera(2 * THREE.MathUtils.radToDeg(Math.atan(span / 2 / dist)), 1, 0.1, 2000);
+camera.position.set(0, 0, size.z / 2 + dist);
+renderer.render(scene, camera);
+const out = document.createElement('canvas');
+out.width = out.height = OUT;
+out.getContext('2d').drawImage(canvas, 0, 0, OUT, OUT);
+window.__favicon = out.toDataURL('image/png');
+document.title = 'favicon ready';
+</script>

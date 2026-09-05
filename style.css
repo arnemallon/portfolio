@@ -59,10 +59,41 @@ body {
     /* the body's own 0.75rem gap, plus room for the field's halo to fall off
        before the description tile starts */
     margin-bottom: 1.25rem;
+    /* one size for the name and for anything that must match it */
+    --name-size: clamp(2.6rem, 11vw, 4.2rem);
+}
+
+/* the 3D logo (logo3d.js). It used to sit beside the name in the header row;
+   that read as cluttered, so it now floats as a fixed corner mark, independent
+   of the header and the bento — a signature you can find and play with, not a
+   second thing competing with the name for width. Sized on its own (not from
+   --name-size) since it no longer shares a line with any text. The host is
+   also the pointer target; the canvas around it is transparent and takes no
+   pointer events, so it never blocks whatever it visually overlaps (a tile
+   corner, on narrow screens where the page scrolls past the viewport). */
+.logo-3d {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    height: clamp(40px, 9vw, 52px);
+    aspect-ratio: 2 / 1;
+    z-index: 20;
+    touch-action: none;
+    cursor: grab;
+}
+
+.logo-3d.dragging {
+    cursor: grabbing;
+}
+
+.logo-3d canvas {
+    position: absolute;
+    display: block;
+    pointer-events: none;
 }
 
 .headline {
-    font-size: clamp(2.6rem, 11vw, 4.2rem);
+    font-size: var(--name-size);
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 0.9;
@@ -167,12 +198,14 @@ svg.lg-defs {
     border-color: #3d3d3d;
 }
 
+/* the longer two turn less: at a given angle a wider pill swings its ends
+   further, so equal degrees do not read as equal tilt */
 .tag-uhh:hover {
-    transform: rotate(-2.5deg);
+    transform: rotate(-1.4deg);
 }
 
 .tag-meister:hover {
-    transform: rotate(3deg);
+    transform: rotate(1.9deg);
 }
 
 .tag-berkeley:hover {
@@ -305,6 +338,12 @@ svg.lg-defs {
 @media (max-width: 580px) {
     .bento {
         grid-template-columns: 1fr;
+    }
+
+    /* under ~372px the 2.6rem floor plus the logo no longer fit on one row and
+       the name would wrap under it; a lower floor keeps them side by side */
+    .page-head {
+        --name-size: clamp(2.2rem, 11vw, 4.2rem);
     }
 
     .group,

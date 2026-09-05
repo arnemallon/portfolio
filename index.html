@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arne Mallon</title>
+    <link rel="icon" href="static/favicon.ico" sizes="16x16 32x32 48x48">
+    <link rel="icon" type="image/png" sizes="256x256" href="static/favicon-256.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="page-head">
         <h1 class="headline" data-lg="title"><span>Arne Mallon</span></h1>
     </header>
+
+    <div class="logo-3d" aria-hidden="true"></div>
 
     <main class="bento">
         <section class="tile intro">
@@ -66,5 +71,14 @@
         }
     </script>
     <script src="glass/glass-runtime.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="logo3d.js"></script>
 </body>
 </html>

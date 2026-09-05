@@ -10,6 +10,9 @@
      · the pointer, on fine pointers (desktop);
      · the device tilt, on phones (iOS gates the sensor behind a user gesture,
        so a one-shot listener asks on the first touch);
+     · the 3D logo (logo3d.js), while it is being spun — `window.__glassLight`,
+       an absolute angle rather than the cursor's blend toward the static key,
+       so a full drag visibly tracks instead of fading back toward it;
      · a 120° sweep on load, which drives `cur` directly and then hands back.
 
    The loop runs on requestAnimationFrame and stops as soon as it settles, so the
@@ -27,7 +30,6 @@
   var MIX = 0.55;                       // how far the key follows the input
   var EASE = 0.35;                      // approach per step at REF_HZ
   var REF_HZ = 15;                      // the rate EASE is tuned against (upstream's)
-  var NEAR_PX = 240;                    // pointer this close (or a heading width) lights it
   var SETTLED = 0.0004;                 // below this the loop stops and snaps to target
   var INTRO_MS = 1900;
   var INTRO_ARC = (Math.PI * 2) / 3;    // 120°: the light swings in, it does not orbit
@@ -110,6 +112,22 @@
   }
   function aimRest() { target.x = KEY.x; target.y = KEY.y; kick(); }
 
+  /** the logo's spin drives the light directly, in lock step: a full 90° drag
+      turns the key 90°, not some damped fraction of it — bypasses `aim`'s MIX
+      blend on purpose, so the connection between the two reads as causal.
+      Off under reduced motion, matching every other input here. `held` (below)
+      is logo3d.js's side of the handshake: true from the moment it grabs the
+      logo to the moment it settles home, so cursor/tilt tracking (the same
+      literal mouse drag also reaches this file's `window` pointermove
+      listener) stays out of the way for that whole window. */
+  function setAngle(rad) {
+    if (reduced.matches) return;
+    target.x = Math.cos(rad);
+    target.y = Math.sin(rad);
+    kick();
+  }
+  window.__glassLight = { setAngle: setAngle, baseAngle: Math.atan2(KEY.y, KEY.x), held: false };
+
   /* ---- the load sweep: a 120° arc, ending on the static key ------------------ */
 
   function sweep(done) {
@@ -141,18 +159,31 @@
 
   /* ---- pointer: the rect is read here, never in the loop --------------------- */
 
+  /* true while the logo (logo3d.js) is spinning or springing home: it owns
+     the light exclusively then, so a real mouse drag on the logo — a
+     `pointermove` that reaches this listener too, since it is on `window` —
+     does not fight the logo's own setAngle calls over `target` every frame. */
+  function heldByLogo() { return !!(window.__glassLight && window.__glassLight.held); }
+
   function trackPointer() {
     window.addEventListener('pointermove', function (e) {
       if (e.pointerType && e.pointerType !== 'mouse') return;
       if (!fine.matches || reduced.matches) return;
+      if (heldByLogo()) return;
       var r = head.getBoundingClientRect();
       var dx = e.clientX - (r.left + r.width / 2);
       var dy = e.clientY - (r.top + r.height / 2);
       var d = Math.hypot(dx, dy) || 1;
-      if (d < Math.max(r.width, NEAR_PX)) aim(dx / d, dy / d);
-      else aimRest();
+      // no proximity cutoff: the direction from the name to the pointer is
+      // defined at any distance, so the light tracks anywhere on the page.
+      // (It used to rest beyond max(name width, 240px), which read as the
+      // effect being broken once the cursor moved off to either side.)
+      aim(dx / d, dy / d);
     }, { passive: true });
-    document.documentElement.addEventListener('pointerleave', aimRest);
+    document.documentElement.addEventListener('pointerleave', function () {
+      if (heldByLogo()) return;
+      aimRest();
+    });
   }
 
   /* ---- device tilt ---------------------------------------------------------- */
@@ -162,6 +193,7 @@
 
   function onTilt(e) {
     if (reduced.matches || e.beta == null || e.gamma == null) return;
+    if (heldByLogo()) return;
     var clamp = function (v) { return Math.max(-1, Math.min(1, v)); };
     // the light is fixed in the room: tilting the device right swings it left
     aim(-clamp(e.gamma / SPAN), -clamp((e.beta - NEUTRAL_BETA) / SPAN));
